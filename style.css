@@ -52,9 +52,22 @@
     background-color: #a8a8a8;
     color: black;
 }
+.calculator__button-light-gray:active {
+    background-color: #cac8c8;
+}
 .calculator__button-dark-gray {
     background-color: #303030;
 }
+.calculator__button-dark-gray:active {
+    background-color: #555454;
+}
 .calculator__button-orange {
     background-color: #ff9504;
+}
+.calculator__button-orange:active {
+    background-color: #f6b354;
+}
+.calculator__button-orange:focus {
+    color: #ff9504;
+    background-color: #fff;
 }
