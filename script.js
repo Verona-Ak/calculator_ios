@@ -149,16 +149,17 @@ window.addEventListener('DOMContentLoaded', function() {
 
             if(i == 1) {
                 arrTotals.push(culculation(arrNums[i-1], arrNums[i], i-1));
-                console.log(arrTotals);
+                // console.log(arrTotals);
             } else if(i >= 2) {
                 arrTotals.push(culculation(arrTotals[i-2], arrNums[i], i-1));
-                console.log(arrTotals);
+                // console.log(arrTotals);
             }
             
         }
         total = String(arrTotals[arrTotals.length-1]);
+        
         if(total.includes('.')) {
-            total = total.replace('.', ',');
+            total = checkRound(total.replace('.', ','));
         }
         fillEntryField(total);
         clearVar();
@@ -176,8 +177,24 @@ window.addEventListener('DOMContentLoaded', function() {
         } else if (arrOperations[index] == '+') {
             itemTotal = (Number(item1)+Number(item2)).toFixed(3);
         }
+
         return itemTotal;
     }
+
+    // В JavaScript операции с числами, имеющими плавающую точку, дают не правильный ответ, поэтому решино не только округлить ответ, но удалить лишние нули в числе после запятой
+    function checkRound(total) {
+        let arr = total.split('');
+        for(let i = arr.length-1; i > 0; i=i-1) {
+            if(arr[i] == '0') {
+                delete arr[i];          
+            } else {
+
+            }
+        }
+        total = arr.join('');
+        return total;
+    }
+
 });
 
 // function clearString(string) {
