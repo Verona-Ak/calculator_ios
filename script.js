@@ -1,32 +1,40 @@
 window.addEventListener('DOMContentLoaded', function() {
     'use strict';
+
     const allBtns = document.querySelectorAll('.calculator__button'),
         entryField = document.querySelector('.calculator__entry-field'),
         ac = document.querySelector('button[value="AC"]'),
 
         collectionOrangeBtns = document.getElementsByClassName('calculator__button-orange'),
         arrFunc = [collectionOrangeBtns[0], collectionOrangeBtns[1], collectionOrangeBtns[2], collectionOrangeBtns[3]],
+        
         equality = document.querySelector('button[value="="]');
 
-    let string = '',
-        total;  // итоговое значение, результат к-л операции
-
+    let string = '',                // строковое значение числа
+        total = '',                // итоговое значение, результат к-л операции
+        lastSign = '',            // последний нажатый знак
+        regexp = /[\/\*\-\+]/g;
 
     for(let btn of allBtns) {
         btn.addEventListener('click', ()=> {
+
+            // Настрока кнопок от 0 до 9
             if(btn.value.match(/[0-9]/)) {
-                if(btn.value == '0' && string.length == 0) {
+                if(btn.value == '0' && (string.length == 0 || string == '-')) {
                     console.log('0 не может стоять первым, если не задумано дробное число');
+                    // let promise = new Promise(function(resolve, reject) {
+                    //     lastSign == '=' ? resolve('Нажато равно') : reject('Равно не нажато');
+                    //     return promise;
+                    // })
                 } else {
                     ac.textContent = 'C';
                     string += btn.value;
                     fillEntryField(string);
                 }
             
-            
             // Настрока кнопки ','
             } else if(btn.value == ',' && !string.includes(','))  {
-                if(string.length == 0) {
+                if(string.length == 0 || string == '-') {
                     string += '0,';
                     ac.textContent = 'C';
                     fillEntryField(string);
@@ -51,7 +59,6 @@ window.addEventListener('DOMContentLoaded', function() {
                     string = string.replace('-', '');
                     fillEntryField(string + 0);
                 }
-                
             
             // Настрока кнопки '%'
             } else if(btn.value == '%' && string.length != 0) {
@@ -71,7 +78,8 @@ window.addEventListener('DOMContentLoaded', function() {
     ac.addEventListener('click', ()=> {
         ac.textContent = 'AC';
         clearVar();
-        fillEntryField(0 + string);
+        total = '';
+        fillEntryField(0);
     });
 
     // Запись в поле калькулятора
@@ -79,18 +87,21 @@ window.addEventListener('DOMContentLoaded', function() {
         entryField.textContent = text;
     }
 
-    // Функция отчистки переменных при нажатии на AC
+    // Функция отчистки переменных
     function clearVar() {
         string = '';
         stringForCalculation = '';
-        total = '';
         arrTotals = [];
     }
-    // Функция проверки последнего символа в строке
+
+    // Функция проверки последнего символа в строке на запятую
     function checkLastChar(string) {
         if(string[string.length-1] == ',') {
             string = string.replace(',', '');
-        }
+        } 
+        // else if(/[\/\*\-\+]$/.test(string)) {
+        //     string = string.replace(regexp, '');
+        // }
         return string;
     }
 
@@ -98,45 +109,51 @@ window.addEventListener('DOMContentLoaded', function() {
     function calcPercent(string) {
         let num,
             result;
-
         string = checkLastChar(string);
-
         if(string.includes(',')) {
             num = parseFloat(string.replace(',', '.'))/100;
         } else {
             num = Number(string)/100;
         }
-
         result = String(num).replace('.', ',');
         return result;  
     }
 
+    let stringForCalculation = '',   // строка из строк вместе со знаками '5*3-6+10/'
+        arrNums = [],               // массив для строк ['5', '3', '6', '10']
+        arrOperations = [],        // массив для знаков ['*', '-', '+', '/']
+        arrTotals = [];           // массив для результатов промежуточных действий [15, 9, 19]
+        
 
-    let stringForCalculation = '',
-        arrNums = [],
-        arrOperations = [],
-        arrTotals = [],
-        regexp = /[\/\*\-\+]/g;
-
-
+    // Настрока кнопок /, *, -, +
     for(let func of arrFunc) {
         func.addEventListener('click', ()=> {
+            // Если строка перед нажатием на знак - обычное число
             if(string.length >= 1 && string != '-' && string != '0,' && string != '-0,') {
                 string = checkLastChar(string);
 
                 stringForCalculation += string;
                 stringForCalculation += func.value;
                 string = '';
+
+            // Перед нажатием на знак был зафиксирован результат предыдущего вычисления
             } else if(string.length == 0 && total.length >= 1) {
+                
                 stringForCalculation += total;
                 stringForCalculation += func.value;
+                total = '';
+
+            // Перед нажатием на знак нет ни строки, ни тотала => вместо строки берём '0'
+            } else if(string.length == 0 && total.length == 0) {
+                stringForCalculation += ('0' + func.value);
             }
             console.log(stringForCalculation);
         });
     }
 
     equality.addEventListener('click', ()=> {
-        string = checkLastChar(string);
+        string = checkLastChar(string);                                // проверка, не заканчивается ли string на ','
+        // stringForCalculation = checkLastChar(stringForCalculation);   // проверка, не заканчивается ли stringForCalculation на к-л знак
 
         stringForCalculation += string;
         arrNums = stringForCalculation.split(regexp);
@@ -146,62 +163,68 @@ window.addEventListener('DOMContentLoaded', function() {
             if(arrNums[i].includes(',')) {
                 arrNums[i] = arrNums[i].replace(',', '.');
             }
-
             if(i == 1) {
                 arrTotals.push(culculation(arrNums[i-1], arrNums[i], i-1));
-                // console.log(arrTotals);
+                console.log(arrTotals);
             } else if(i >= 2) {
                 arrTotals.push(culculation(arrTotals[i-2], arrNums[i], i-1));
-                // console.log(arrTotals);
+                console.log(arrTotals);
             }
             
         }
-        total = String(arrTotals[arrTotals.length-1]);
-        
-        if(total.includes('.')) {
-            total = checkRound(total.replace('.', ','));
-        }
+        total = rounding(arrTotals[arrTotals.length-1]);
         fillEntryField(total);
         clearVar();
     });
 
+    // Выполнение операций деления, умножения, вычитания и сложения
     function culculation(item1, item2, index) {
         let itemTotal;
-
         if(arrOperations[index] == '/') {
-            itemTotal = (Number(item1)/Number(item2)).toFixed(3);
+            itemTotal = (Number(item1)/Number(item2));
         } else if (arrOperations[index] == '-') {
-            itemTotal = (Number(item1)-Number(item2)).toFixed(3);
+            itemTotal = (Number(item1)-Number(item2));
         } else if (arrOperations[index] == '*') {
-            itemTotal = (Number(item1)*Number(item2)).toFixed(3);
+            itemTotal = (Number(item1)*Number(item2));
         } else if (arrOperations[index] == '+') {
-            itemTotal = (Number(item1)+Number(item2)).toFixed(3);
+            itemTotal = (Number(item1)+Number(item2));
         }
-
         return itemTotal;
     }
 
-    // В JavaScript операции с числами, имеющими плавающую точку, дают не правильный ответ, поэтому решино не только округлить ответ, но удалить лишние нули в числе после запятой
-    function checkRound(total) {
-        let arr = total.split('');
+    /* 
+        В JavaScript некоторые операции с числами, имеющими плавающую точку, 
+        дают не правильный ответ, поэтому решино:
+        - округлить total до 4х зн. после ',' 
+        - удалить лишние нули
+    */ 
+    
+    // Округление
+    function rounding(num) {
+        if(!Number.isInteger(num)) {  // проверка является ли num не целым
+            num = num.toFixed(4);     
+            num = deleteExtraZeros(String(num).replace('.', ','));  // В функцию передаём строку
+        }
+        return num;
+    }
+
+    // Удаление нулей
+    function deleteExtraZeros(num) {
+        let arr = num.split('');
         for(let i = arr.length-1; i > 0; i=i-1) {
             if(arr[i] == '0') {
                 delete arr[i];          
-            } else {
-
             }
         }
-        total = arr.join('');
-        return total;
+        num = arr.join('');
+        return num;
     }
-
+    // function clearString(string) {
+    //     string = (string.replace(/-/, '')).replace(/,/, '');
+    //     if(string.length >= 9) {
+    //         permission = false;
+    //         console.log('Достигнут максимум');
+    //         return permission;
+    //     }
+    // }
 });
-
-// function clearString(string) {
-//     string = (string.replace(/-/, '')).replace(/,/, '');
-//     if(string.length >= 9) {
-//         permission = false;
-//         console.log('Достигнут максимум');
-//         return permission;
-//     }
-// }
