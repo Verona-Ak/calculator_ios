@@ -70,7 +70,7 @@ window.addEventListener('DOMContentLoaded', function() {
                     fillEntryField(total);
                     string = '';
                 }
-            }
+            } 
         });
     }
 
@@ -128,6 +128,7 @@ window.addEventListener('DOMContentLoaded', function() {
     // Настрока кнопок /, *, -, +
     for(let func of arrFunc) {
         func.addEventListener('click', ()=> {
+
             // Если строка перед нажатием на знак - обычное число
             if(string.length >= 1 && string != '-' && string != '0,' && string != '-0,') {
                 string = checkLastChar(string);
@@ -138,16 +139,16 @@ window.addEventListener('DOMContentLoaded', function() {
 
             // Перед нажатием на знак был зафиксирован результат предыдущего вычисления
             } else if(string.length == 0 && total.length >= 1) {
-                
+
                 stringForCalculation += total;
                 stringForCalculation += func.value;
                 total = '';
-
+                console.log(stringForCalculation);
             // Перед нажатием на знак нет ни строки, ни тотала => вместо строки берём '0'
             } else if(string.length == 0 && total.length == 0) {
                 stringForCalculation += ('0' + func.value);
             }
-            console.log(stringForCalculation);
+            
         });
     }
 
@@ -172,6 +173,7 @@ window.addEventListener('DOMContentLoaded', function() {
             }
             
         }
+
         total = rounding(arrTotals[arrTotals.length-1]);
         fillEntryField(total);
         clearVar();
@@ -201,23 +203,23 @@ window.addEventListener('DOMContentLoaded', function() {
     
     // Округление
     function rounding(num) {
-        if(!Number.isInteger(num)) {  // проверка является ли num не целым
-            num = num.toFixed(4);     
-            num = deleteExtraZeros(String(num).replace('.', ','));  // В функцию передаём строку
+        if(!Number.isInteger(num)) {  // проверка является ли num не целым    
+            num = deleteExtraZeros(String(num.toFixed(4)).replace('.', ','));  // В функцию передаём строку
+            return num;
         }
-        return num;
+        return String(num);
     }
 
     // Удаление нулей
-    function deleteExtraZeros(num) {
-        let arr = num.split('');
+    function deleteExtraZeros(str) {
+        let arr = str.split('');
         for(let i = arr.length-1; i > 0; i=i-1) {
             if(arr[i] == '0') {
                 delete arr[i];          
             }
         }
-        num = arr.join('');
-        return num;
+        str = arr.join('');
+        return str;
     }
     // function clearString(string) {
     //     string = (string.replace(/-/, '')).replace(/,/, '');
