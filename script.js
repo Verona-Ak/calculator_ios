@@ -10,9 +10,9 @@ window.addEventListener('DOMContentLoaded', function() {
         
         equality = document.querySelector('button[value="="]');
 
-    let string = '',                // строковое значение числа
+    let string = '',                 // строковое значение числа
         total = '',                 // итоговое значение, результат к-л операции
-        lastoperation = '',               
+        lastoperation = '',        //  последня операция до нажатия на '='   
         regexp = /[\/\*\-\+]/g;
 
     for(let btn of allBtns) {
@@ -103,12 +103,9 @@ window.addEventListener('DOMContentLoaded', function() {
         let num,
             result;
         string = checkLastChar(string);
-        if(string.includes(',')) {
-            num = parseFloat(string.replace(',', '.'))/100;
-        } else {
-            num = Number(string)/100;
-        }
-        result = String(num).replace('.', ',');
+        num = Number(fromComma_toDot(string))/100;
+
+        result = rounding(num).replace('.', ',');
         return result;  
     }
 
@@ -152,11 +149,11 @@ window.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    // Настрока =
     equality.addEventListener('click', ()=> {
         if(total.length >= 1 && lastoperation.length >= 1) {
             total = repeatLastFunc(total, lastoperation);
             total = rounding(total);
-            fillEntryField('+++');
         } else {
             string = checkLastChar(string);                                // проверка, не заканчивается ли string на ','
 
@@ -175,9 +172,8 @@ window.addEventListener('DOMContentLoaded', function() {
                 т.к. цикл запускается по массиву с числами и бессмысленный последний знак в функцию calculation уже не попадает
             */
             for(let i = 0; i < arrNums.length; i++) {
-                if(arrNums[i].includes(',')) {
-                    arrNums[i] = arrNums[i].replace(',', '.');
-                }
+                arrNums[i] = fromComma_toDot(arrNums[i]);
+
                 if(i == 1) {
                     arrTotals.push(culculation(arrNums[i-1], arrNums[i], i-1).itemTotal);
                     lastoperation = culculation(arrNums[i-1], arrNums[i], i-1).lastoperation;
@@ -224,10 +220,11 @@ window.addEventListener('DOMContentLoaded', function() {
 
     // Повторное выполнение последней операции
     function repeatLastFunc(num, lastoperation) {
-        let lastitem = lastoperation.replace(regexp, ''),
+        let lastitem = fromComma_toDot(lastoperation.replace(regexp, '')),
             sign = lastoperation[lastoperation.search(regexp)],
             total;
-
+        num = fromComma_toDot(num);
+        
         if(sign == '/') {
             total = (Number(num)/Number(lastitem));
         } else if (sign == '-') {
@@ -262,11 +259,21 @@ window.addEventListener('DOMContentLoaded', function() {
         for(let i = arr.length-1; i > 0; i=i-1) {
             if(arr[i] == '0') {
                 delete arr[i];          
+            } else {
+                str = arr.join('');
+                return str;
             }
         }
-        str = arr.join('');
+    }
+
+    // Функция замены ',' на '.' для дальнейших вычислительных действий
+    function fromComma_toDot(str) {
+        if(str.includes(',')) {
+            str = str.replace(',', '.');
+        } 
         return str;
     }
+
     // function clearString(string) {
     //     string = (string.replace(/-/, '')).replace(/,/, '');
     //     if(string.length >= 9) {
