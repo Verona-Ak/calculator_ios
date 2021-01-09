@@ -22,10 +22,6 @@ window.addEventListener('DOMContentLoaded', function() {
             if(btn.value.match(/[0-9]/)) {
                 if(btn.value == '0' && (string.length == 0 || string == '-')) {
                     console.log('0 не может стоять первым, если не задумано дробное число');
-                    // let promise = new Promise(function(resolve, reject) {
-                    //     lastSign == '=' ? resolve('Нажато равно') : reject('Равно не нажато');
-                    //     return promise;
-                    // })
                 } else {
                     ac.textContent = 'C';
                     string += btn.value;
@@ -143,12 +139,19 @@ window.addEventListener('DOMContentLoaded', function() {
                 stringForCalculation += total;
                 stringForCalculation += func.value;
                 total = '';
-                console.log(stringForCalculation);
-            // Перед нажатием на знак нет ни строки, ни тотала => вместо строки берём '0'
-            } else if(string.length == 0 && total.length == 0) {
+            /*
+                Перед нажатием на знак либо нет string и total, что соотв. ситуации, когда пользователь начинает расчёт сразу со знака, подразумевая,
+                что действие будет произведено с '0': *6=0, за первую строку берётся '0';
+                Вторая ситуация - пользователь сначала нажал на один знак, а потом, передумав, на второй: 2*+2. В данной ситуации так же уже отсутствуют
+                string и total. За предыдущ. строку также берётся '0': 2*0+2;
+                Третья ситуация(в дополнение к первой) - строка в начале расчёта равна либо '-', либо '0,', либо '-0,'
+            
+            */
+            } else if((string.length == 0 && total.length == 0) || string == '-' || string == '0,' || string == '-0,') {
+                string = '';
                 stringForCalculation += ('0' + func.value);
             }
-            
+            // console.log(stringForCalculation);
         });
     }
 
@@ -160,21 +163,28 @@ window.addEventListener('DOMContentLoaded', function() {
         arrNums = stringForCalculation.split(regexp);
         arrOperations = stringForCalculation.match(regexp);
 
+        console.log(stringForCalculation);
+
+        /*
+            Логика, описананная ниже, предотвращает ошибку в случае, если польз-ль оканчивает свой расчёт знаком: 2*3-=,
+            т.к. цикл запускается по массиву с числами и бессмысленный последний знак в функцию calculation уже не попадает
+        */
         for(let i = 0; i < arrNums.length; i++) {
             if(arrNums[i].includes(',')) {
                 arrNums[i] = arrNums[i].replace(',', '.');
             }
             if(i == 1) {
                 arrTotals.push(culculation(arrNums[i-1], arrNums[i], i-1));
-                console.log(arrTotals);
+                // console.log(arrTotals);
             } else if(i >= 2) {
                 arrTotals.push(culculation(arrTotals[i-2], arrNums[i], i-1));
-                console.log(arrTotals);
+                // console.log(arrTotals);
             }
             
         }
 
         total = rounding(arrTotals[arrTotals.length-1]);
+        // console.log(total); // Вывод total
         fillEntryField(total);
         clearVar();
     });
