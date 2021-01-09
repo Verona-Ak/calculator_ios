@@ -11,8 +11,8 @@ window.addEventListener('DOMContentLoaded', function() {
         equality = document.querySelector('button[value="="]');
 
     let string = '',                // строковое значение числа
-        total = '',                // итоговое значение, результат к-л операции
-        lastSign = '',            // последний нажатый знак
+        total = '',                 // итоговое значение, результат к-л операции
+        lastoperation = '',               
         regexp = /[\/\*\-\+]/g;
 
     for(let btn of allBtns) {
@@ -95,9 +95,6 @@ window.addEventListener('DOMContentLoaded', function() {
         if(string[string.length-1] == ',') {
             string = string.replace(',', '');
         } 
-        // else if(/[\/\*\-\+]$/.test(string)) {
-        //     string = string.replace(regexp, '');
-        // }
         return string;
     }
 
@@ -156,52 +153,91 @@ window.addEventListener('DOMContentLoaded', function() {
     }
 
     equality.addEventListener('click', ()=> {
-        string = checkLastChar(string);                                // проверка, не заканчивается ли string на ','
-        // stringForCalculation = checkLastChar(stringForCalculation);   // проверка, не заканчивается ли stringForCalculation на к-л знак
+        if(total.length >= 1 && lastoperation.length >= 1) {
+            total = repeatLastFunc(total, lastoperation);
+            total = rounding(total);
+            fillEntryField('+++');
+        } else {
+            string = checkLastChar(string);                                // проверка, не заканчивается ли string на ','
 
-        stringForCalculation += string;
-        arrNums = stringForCalculation.split(regexp);
-        arrOperations = stringForCalculation.match(regexp);
+            /*
+                Ситуация типа '6'-0+'3' и '6'*0 (обозначены строки; 0 возвращает пустую строку):
+                - в первом случае в stringForCalculation сохранается 6-+3,
+                    а - и + искусственно создают между собой '0' как строку (см. обработчик для func)
+                - во втором случае происходит преобразование типов - пустая строка преобразуется в 0  в результате вычислений
+            */
+            stringForCalculation += string;
+            arrNums = stringForCalculation.split(regexp);
+            arrOperations = stringForCalculation.match(regexp);
 
-        console.log(stringForCalculation);
-
-        /*
-            Логика, описананная ниже, предотвращает ошибку в случае, если польз-ль оканчивает свой расчёт знаком: 2*3-=,
-            т.к. цикл запускается по массиву с числами и бессмысленный последний знак в функцию calculation уже не попадает
-        */
-        for(let i = 0; i < arrNums.length; i++) {
-            if(arrNums[i].includes(',')) {
-                arrNums[i] = arrNums[i].replace(',', '.');
+            /*
+                Логика, описананная ниже, предотвращает ошибку в случае, если польз-ль оканчивает свой расчёт знаком: 2*3-=,
+                т.к. цикл запускается по массиву с числами и бессмысленный последний знак в функцию calculation уже не попадает
+            */
+            for(let i = 0; i < arrNums.length; i++) {
+                if(arrNums[i].includes(',')) {
+                    arrNums[i] = arrNums[i].replace(',', '.');
+                }
+                if(i == 1) {
+                    arrTotals.push(culculation(arrNums[i-1], arrNums[i], i-1).itemTotal);
+                    lastoperation = culculation(arrNums[i-1], arrNums[i], i-1).lastoperation;
+                    console.log(lastoperation);
+                    // console.log(arrTotals);
+                } else if(i >= 2) {lastoperation
+                    arrTotals.push(culculation(arrTotals[i-2], arrNums[i], i-1).itemTotal);
+                    lastoperation = culculation(arrTotals[i-2], arrNums[i], i-1).lastoperation;
+                    console.log(lastoperation);
+                    // console.log(arrTotals);
+                }
+                
             }
-            if(i == 1) {
-                arrTotals.push(culculation(arrNums[i-1], arrNums[i], i-1));
-                // console.log(arrTotals);
-            } else if(i >= 2) {
-                arrTotals.push(culculation(arrTotals[i-2], arrNums[i], i-1));
-                // console.log(arrTotals);
-            }
-            
+
+            total = rounding(arrTotals[arrTotals.length-1]);
         }
-
-        total = rounding(arrTotals[arrTotals.length-1]);
-        // console.log(total); // Вывод total
+        
+        console.log(total); // Вывод total
         fillEntryField(total);
         clearVar();
     });
 
     // Выполнение операций деления, умножения, вычитания и сложения
     function culculation(item1, item2, index) {
-        let itemTotal;
+        let obj = {};
+        obj.itemTotal;
+        obj.lastoperation;    // последняя операция
+
         if(arrOperations[index] == '/') {
-            itemTotal = (Number(item1)/Number(item2));
+            obj.lastoperation = '/' + item2;
+            obj.itemTotal = (Number(item1)/Number(item2));
         } else if (arrOperations[index] == '-') {
-            itemTotal = (Number(item1)-Number(item2));
+            lastoperation = '-' + item2;
+            obj.itemTotal = (Number(item1)-Number(item2));
         } else if (arrOperations[index] == '*') {
-            itemTotal = (Number(item1)*Number(item2));
+            obj.lastoperation = '*' + item2;
+            obj.itemTotal = (Number(item1)*Number(item2));
         } else if (arrOperations[index] == '+') {
-            itemTotal = (Number(item1)+Number(item2));
+            obj.lastoperation = '+' + item2;
+            obj.itemTotal = (Number(item1)+Number(item2));
         }
-        return itemTotal;
+        return obj;
+    }
+
+    // Повторное выполнение последней операции
+    function repeatLastFunc(num, lastoperation) {
+        let lastitem = lastoperation.replace(regexp, ''),
+            sign = lastoperation[lastoperation.search(regexp)],
+            total;
+
+        if(sign == '/') {
+            total = (Number(num)/Number(lastitem));
+        } else if (sign == '-') {
+            total = (Number(num)-Number(lastitem));
+        } else if (sign == '*') {
+            total = (Number(num)*Number(lastitem));
+        } else if (sign == '+') {
+            total = (Number(num)+Number(lastitem));
+        }
+        return total;
     }
 
     /* 
