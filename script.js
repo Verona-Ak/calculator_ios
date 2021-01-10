@@ -173,16 +173,15 @@ window.addEventListener('DOMContentLoaded', function() {
             */
             for(let i = 0; i < arrNums.length; i++) {
                 arrNums[i] = fromComma_toDot(arrNums[i]);
-
                 if(i == 1) {
-                    arrTotals.push(culculation(arrNums[i-1], arrNums[i], i-1).itemTotal);
-                    lastoperation = culculation(arrNums[i-1], arrNums[i], i-1).lastoperation;
-                    console.log(lastoperation);
+                    let obj = culculation(arrNums[i-1], arrNums[i], i-1);
+                    arrTotals.push(obj.itemTotal);
+                    lastoperation = obj.lastoperation;
                     // console.log(arrTotals);
                 } else if(i >= 2) {lastoperation
-                    arrTotals.push(culculation(arrTotals[i-2], arrNums[i], i-1).itemTotal);
-                    lastoperation = culculation(arrTotals[i-2], arrNums[i], i-1).lastoperation;
-                    console.log(lastoperation);
+                    obj = culculation(arrTotals[i-2], arrNums[i], i-1);
+                    arrTotals.push(obj.itemTotal);
+                    lastoperation = obj.lastoperation;
                     // console.log(arrTotals);
                 }
                 
@@ -203,17 +202,17 @@ window.addEventListener('DOMContentLoaded', function() {
         obj.lastoperation;    // последняя операция
 
         if(arrOperations[index] == '/') {
-            obj.lastoperation = '/' + item2;
             obj.itemTotal = (Number(item1)/Number(item2));
+            obj.lastoperation = `/${item2}`;
         } else if (arrOperations[index] == '-') {
-            lastoperation = '-' + item2;
             obj.itemTotal = (Number(item1)-Number(item2));
+            obj.lastoperation = `-${item2}`;
         } else if (arrOperations[index] == '*') {
-            obj.lastoperation = '*' + item2;
             obj.itemTotal = (Number(item1)*Number(item2));
+            obj.lastoperation = `*${item2}`;
         } else if (arrOperations[index] == '+') {
-            obj.lastoperation = '+' + item2;
             obj.itemTotal = (Number(item1)+Number(item2));
+            obj.lastoperation = `+${item2}`;
         }
         return obj;
     }
